@@ -3,3 +3,6 @@ title: "The Power of Efficiency"
 format: html
 editor: visual
 ---
+
+
+To me, efficiency is the process of doing something with little wasted energy, making sure it’s done in the best way possible. In the coding sense I think this means making sure your code is tidy, using modern tools, and make use of interaction to reduce redundancy. It’s super important to be an efficient producer of code, because as you get work with larger data, and more code, it affects the run-time and benchmarking numbers if your code. One moment that I realized how important efficiency code was when I was peer-grading a lab and realized instead of cleaning and updating the data set they working with the person had filtered and cleaned up the data in every code chunk they were writing. So the computer was essentially redoing the same “cleaning” of the data. Making sure that moments like these don’t happen are important so that 
