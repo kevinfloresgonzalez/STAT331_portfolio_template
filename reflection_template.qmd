@@ -11,7 +11,7 @@ execute:
   echo: true
 ---
 
-[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be an \_\_.
+[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be an c-.
 
 [**Learning Objective Evidence:**]{.underline} In the code chunks below, provide code from a Lab or Challenge assignment where you believe you have demonstrated proficiency with the specified learning target. Be sure to specify **where** the code came from (e.g., Lab 4 Question 2).
 
@@ -21,20 +21,36 @@ execute:
 
 -   `csv`
 
-```{r wd-1-csv}
+Lab 2 Question 1
 
+```{r wd-1-csv}
+surveys <- read_csv(here::here
+                    ("Week 2", 
+                      "Lab 2", 
+                      "surveys.csv")
+                    )
 ```
 
 -   `xlsx`
+-   Preview Activity 6: Question 4
 
 ```{r wd-1-xlsx}
-
+ages <- read_xlsx(here:here
+                  ("Week 2", 
+                    "Practice Activity",
+                    "ages.xlsx")
+                  )
 ```
 
 -   `txt`
 
-```{r wd-1-txt}
+Preview Activity 6: Question 2
 
+```{r wd-1-txt}
+ages_tab <- read_tsv(here::here
+                     ("Week 2",
+                       "Practice Activity",
+                       "ages_tab.txt"))
 ```
 
 **WD-2: I can select necessary columns from a dataset.**
@@ -46,27 +62,55 @@ execute:
 **WD-3: I can filter rows from a dataframe for a *variety* of data types (e.g., numeric, integer, character, factor, date).**
 
 -   numeric
+-   Lab 3 Question 6
 
 ```{r wd-3-numeric}
-
+under_twenty_hiphop_max <- hiphop_clean |>
+  filter(age < 20) |>
+  select(word, familiarity) |>
+  group_by(word) |>
+  summarise(mean = mean(familiarity), n = n()) |>
+  slice_max(mean)
 ```
 
 -   character -- specifically a string
+-   Lab 3 Question 7
 
 ```{r wd-3-string}
-
+n_white_women_hiphop_min <- hiphop_clean |>
+  filter(ethnic != "white", sex == "Female") |>
+  select(word, familiarity) |>
+  group_by(word) |>
+  summarise(mean = mean(familiarity), n = n()) |>
+  slice_min(mean)
 ```
 
 -   factor
+-   Lab 9 Question 2
 
 ```{r wd-3-factor}
-
+allison_f <- StateNamesA |> 
+  filter(`Sex at Birth` == "F",
+          Name == "Allison") |> 
+  group_by(Year) |> 
+  summarize(Sum_Allison = sum(Count))
 ```
 
 -   date
+-   Lab 5 Question 6
 
 ```{r wd-3-date}
-
+time_series_surveys_by_week_count <- surveys |> 
+  mutate(day_of_week = 
+           fct_collapse(day_of_week, 
+             Weekend = c("Sat", 
+                         "Sun"), 
+             Weekday = c("Mon", 
+                         "Tue", 
+                         "Wed", 
+                         "Thu", 
+                         "Fri"))) |>
+  filter(day_of_week != "NA")
 ```
 
 **WD-4: I can modify existing variables and create new variables in a dataframe for a *variety* of data types (e.g., numeric, integer, character, factor, date).**
@@ -78,21 +122,59 @@ execute:
 ```
 
 -   character -- specifically a string
+-   Lab 5 Question 5
 
 ```{r wd-4-string}
-
+time_series_surveys_by_week_count <- surveys |> 
+  mutate(day_of_week = 
+           fct_collapse(day_of_week, 
+             Weekend = c("Sat", 
+                         "Sun"), 
+             Weekday = c("Mon", 
+                         "Tue", 
+                         "Wed", 
+                         "Thu", 
+                         "Fri"))) |>
+  filter(day_of_week != "NA")
+ggplot(data = time_series_surveys_by_week_count, 
+       mapping = aes(fct_relevel(day_of_week, c("Weekday","Weekend"))))+
+  geom_bar()+
+  labs(title = "Number Of Rodents Caught",
+       x = "Day Of Week",
+       y = "")
 ```
 
 -   factor
+-   Challenge 3 Question 3
 
 ```{r wd-4-factor}
-
+ethnicity_hiphop <- hiphop |> 
+  mutate(ethnic_categorical = ifelse(ethnic == "white", 
+                         "white", 
+                         "non-white")) |> 
+  group_by(ethnic_categorical) |> 
+  distinct(subj, .keep_all = TRUE) |>
+  summarize(across(intl:unclassifiable, mean)) |> 
+  summarize(across(intl:unclassifiable, diff))
+ethnicity_hiphop
 ```
 
 -   date
+-   Lab 5 Question 2.1
 
 ```{r wd-4-date}
-
+ surveys |> 
+  separate(col=date, into=c('Year', 'Month', "Day"), sep='-') |> 
+  group_by(Year, genus) |> 
+  summarize(avg_weight = mean(weight)) |> 
+  ggplot(mapping = aes(x = Year, y = avg_weight, 
+                       color =fct_reorder2(genus, Year, avg_weight),
+                       group = genus)) +
+  geom_line() +
+  labs(title = "Average Weight in Grams", 
+       x = "Year",
+       y = " ",
+       color = "Genus")
 ```
 
 **WD-5: I can use mutating joins to combine multiple dataframes.**
@@ -110,15 +192,21 @@ execute:
 ```
 
 -   `inner_join()`
+-   Preview Activity 4.3 Question 1
 
 ```{r wd-5-inner}
-
+inner_join(prof_info, prof_course)
 ```
 
 -   `full_join()`
+-   Preview Activity 4.3 Question 3
 
 ```{r wd-5-full}
-
+prof_course |>
+  pivot_longer()(cols = c(Stat_331, Stat_330, Stat_431),
+               names_to = "course",
+               values_to = "can_teach") |> 
+  full_join(course_info)
 ```
 
 **WD-6: I can use filtering joins to filter rows from a dataframe.**
@@ -130,22 +218,38 @@ execute:
 ```
 
 -   `anti_join()`
+-   PA 4 Question 4
 
 ```{r wd-6-anti}
-
+military_clean <- military_clean %>% 
+  anti_join(cont_region, by = c("Country" = "Region"))
 ```
 
 **WD-7: I can pivot dataframes from long to wide and visa versa**
 
 -   `pivot_longer()`
+-   PA 4 Question 5
 
 ```{r wd-7-long}
-
+military_clean_long <- military_clean %>% 
+  pivot_longer(`1988`:`2019`, names_to = "Year", values_to = "Spending")
 ```
 
 -   `pivot_wider()`
+-   Lab 9 Question 1
 
 ```{r wd-7-wide}
+StateNamesA |> 
+  pivot_wider(
+    names_from = `Sex at Birth`,
+    values_from = Count) |> 
+  filter(Name == "Allison") |> 
+  group_by(State) |> 
+  summarize(across(F:M, 
+                   sum)) |> 
+  mutate(across(F:M, 
+                ~replace_na(.,0)))
+
 
 ```
 
@@ -160,7 +264,25 @@ I've done this in the following provided assignments:
 -   Example 1
 
 ```{r r-2-1}
-
+sing_day <- function(dataset, line, phrase_col){
+  
+  # Step 1: Setup the intro line
+  num_word <- english::ordinal(line)
+  
+  intro <- 
+    glue::glue("On the {num_word} day of Christmas, my true love gave to me:")
+  
+  # Step 2: Sing the gift phrases
+    phrases <- dataset |>
+      pull( {{phrase_col}} )
+    phrases_day <- glue_collapse(phrases[line:1], sep = " \n", last = " and \n")
+    phrases_day <- str_c(phrases_day, "\n")
+    phrases_end <- glue::glue("{intro} \n {phrases_day}")
+    
+    
+  ## put it together
+    return(phrases_end)
+}
 ```
 
 -   Example 2
@@ -188,111 +310,310 @@ I've done this in the following provided assignments:
 **DVS-1: I can create visualizations for a *variety* of variable types (e.g., numeric, character, factor, date)**
 
 -   numeric variables
+-   Challenge 2 Question 3
 
 ```{r dvs-1-num}
-
+ggplot(data = surveys, mapping = aes( x = weight, 
+                                      y = species,
+                                      color = genus)) + 
+  geom_boxplot() +
+  labs(title = "Distribution Of Weight (In Grams) By Species", 
+       x = "Weight (Grams)",
+       y = "Species") +
+  scale_color_manual(values = cdPalette_grey) +
+  annotate("text", y = 1, x = 10, label = "Neotoma") +
+  annotate("text", y = 2, x = 100, label = "Chaetodipus") +
+  annotate("text", y = 3, x = 100, label = "Peromyscus") +
+  annotate("text", y = 4, x = 90, label = "Perognathus") +
+  annotate("text", y = 5, x = 90, label = "Reithrodontomys") +
+  annotate("text", y = 6, x = 170, label = "Sigmodon") +
+  annotate("text", y = 7, x = 90, label = "Onychomys") +
+  annotate("text", y = 8, x = 90, label = "Peromyscus") +
+  annotate("text", y = 9, x = 80, label = "Reithrodontomys") +
+  annotate("text", y = 10, x = 120, label = "Dipodomys") +
+  annotate("text", y = 11, x = 125, label = "Dipodomys") +
+  annotate("text", y = 12, x = 120, label = "Chaetodipus") +
+  annotate("text", y = 13, x = 250, label = "Dipodomys") +
+  annotate("text", y = 14, x = 85, label = "Onychomys") +
+  theme(legend.position="none")
 ```
 
 -   numeric variables and categorical variables
+-   Lab 2 Question 4
 
 ```{r dvs-2-num-cat}
-
+ggplot(data = surveys, mapping = aes(x = weight, y = hindfoot_length)) + 
+  geom_point(alpha = .3) + 
+  geom_jitter() +
+  facet_wrap(~species)
 ```
 
 -   categorical variables
+-   Lab 9 Question 3
 
 ```{r dvs-2-cat}
-
+allison_f |> 
+  ggplot(mapping = aes(x = Year, 
+                       y = Sum_Allison)) + 
+  geom_col() +
+  labs(title = "Number of Females Named Allison per Year in the US",
+       y = "")
 ```
 
 -   dates
+-   Challenge 7 Question 4.3
 
 ```{r dvs-2-date}
-
+ggplot(data = bf_fish_2, mapping = aes(x = year, 
+                                       y = `Condition Index`)) +
+  geom_line() +
+  facet_grid(cols = vars(species), 
+             rows = vars(Named_Trips)) + 
+  labs(x = "Year",
+       title = "Mean Condition Index For Each Year By Trip And Species",
+       y = "")
 ```
 
 **DVS-2: I use plot modifications to make my visualization clear to the reader.**
 
--   Example 1
+-   Lab 5 Question 4
 
 ```{r dvs-2-1}
-
+surveys |> 
+separate(col=date, into=c('Year', 'Month', "Day"), sep='-') |> 
+group_by(Year, genus) |> 
+summarize(avg_weight = mean(weight)) |> 
+ggplot(mapping = aes(x = Year, y = avg_weight, 
+                     color =fct_reorder2(genus, Year, avg_weight),
+                     group = genus)) +
+geom_line() +
+labs(title = "Average Weight in Grams", 
+     x = "Year",
+     y = " ",
+     color = "Genus")
 ```
 
--   Example 2
+-   Challenge 7 Part 3
 
 ```{r dvs-2-2}
-
+ggplot(data = bf_fish_2, mapping = aes(x = year, 
+                                       y = `Condition Index`)) +
+  geom_line() +
+  facet_grid(cols = vars(species), 
+             rows = vars(Named_Trips)) + 
+  labs(x = "Year",
+       title = "Mean Condition Index For Each Year By Trip And Species",
+       y = "")
 ```
 
 **DVS-3: I show creativity in my visualizations**
 
--   Example 1
+-   Lab 3 Question 9
 
 ```{r dvs-3-1}
+demographics_plot <- hiphop |>
+  distinct(subj, .keep_all = TRUE)
 
+ggplot(demographics_plot, aes(x = age, y = ethnic, color = sex)) +
+  geom_boxplot() +
+  labs(x = "Age of Participant",
+       y = "Ethnicity of Particpant",
+       color = "sex")
 ```
 
--   Example 2
+-   Challenge 2 Spicy challenge
 
 ```{r dvs-3-2}
-
+cdPalette_grey <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", 
+                    "#0072B2", "#D55E00", "#CC79A7")
+ggplot(data = surveys, mapping = aes( x = weight, 
+                                      y = species,
+                                      color = genus)) + 
+  geom_boxplot() +
+  labs(title = "Distribution Of Weight (In Grams) By Species", 
+       x = "Weight (Grams)",
+       y = "Species") +
+  scale_color_manual(values = cdPalette_grey) +
+  annotate("text", y = 1, x = 10, label = "Neotoma") +
+  annotate("text", y = 2, x = 100, label = "Chaetodipus") +
+  annotate("text", y = 3, x = 100, label = "Peromyscus") +
+  annotate("text", y = 4, x = 90, label = "Perognathus") +
+  annotate("text", y = 5, x = 90, label = "Reithrodontomys") +
+  annotate("text", y = 6, x = 170, label = "Sigmodon") +
+  annotate("text", y = 7, x = 90, label = "Onychomys") +
+  annotate("text", y = 8, x = 90, label = "Peromyscus") +
+  annotate("text", y = 9, x = 80, label = "Reithrodontomys") +
+  annotate("text", y = 10, x = 120, label = "Dipodomys") +
+  annotate("text", y = 11, x = 125, label = "Dipodomys") +
+  annotate("text", y = 12, x = 120, label = "Chaetodipus") +
+  annotate("text", y = 13, x = 250, label = "Dipodomys") +
+  annotate("text", y = 14, x = 85, label = "Onychomys") +
+  theme(legend.position="none")
 ```
 
 **DVS-4: I can calculate numerical summaries of variables.**
 
--   Example 1
+-   Lab 7 Question 2
 
 ```{r dvs-4-1}
-
+bf_fish |>
+  summarize(across(.cols = everything(),
+                    .fns = ~sum(is.na(.))))
 ```
 
--   Example 2
+-   Lab 3 Question 11
 
 ```{r dvs-4-2}
+n_white_women_hiphop_max <- hiphop_clean |>
+  filter(ethnic != "white", sex == "Female") |>
+  select(word, familiarity) |>
+  group_by(word) |>
+  summarise(mean = mean(familiarity), n = n()) |>
+  slice_max(mean)
 
+n_white_women_hiphop_min <- hiphop_clean |>
+  filter(ethnic != "white", sex == "Female") |>
+  select(word, familiarity) |>
+  group_by(word) |>
+  summarise(mean = mean(familiarity), n = n()) |>
+  slice_min(mean)
+
+n_white_women_hiphop_max
 ```
 
 **DVS-5: I can find summaries of variables across multiple groups.**
 
--   Example 1
+-   Lab 3 Question 11
 
 ```{r dvs-5-1}
-
+under_twenty_hiphop_max <- hiphop_clean |>
+  filter(age < 20) |>
+  select(word, familiarity) |>
+  group_by(word) |>
+  summarise(mean = mean(familiarity), n = n()) |>
+  slice_max(mean)
 ```
 
 -   Example 2
+-   Challenge 9 question 3
 
 ```{r dvs-5-2}
+CountByState <- StateNamesA |> 
+  rename("Sex at Birth" = "Gender") |> 
+  pivot_wider(
+    names_from = `Sex at Birth`,
+    values_from = Count) |> 
+  filter(Name == "Allison") |> 
+  group_by(State) |> 
+  summarize(across(F:M, 
+                   sum)) |> 
+  mutate(across(F:M, 
+                ~replace_na(.,0)))
 
+kable(CountByState, 
+      col.names = c("State", 
+                    "Female", 
+                    "Male"),
+      format = "html",
+      caption = "Allison's By State",
+      html_font = "Georgia",
+      align = "c"
+      )
 ```
 
 **DVS-6: I can create tables which make my summaries clear to the reader.**
 
--   Example 1
+-   Lab 3 Question 3
 
 ```{r dvs-6-1}
-
+hiphop |>
+  distinct(subj, .keep_all = TRUE) |>
+  count(sex)
 ```
 
 -   Example 2
+-   Lab 9 Question 9
 
 ```{r dvs-6-2}
-
+PercentagesByName <- StateNamesA |> 
+  rename("Sex at Birth" = "Gender") |> 
+  filter(`Sex at Birth` == "M",
+         Name %in% c("Allan", 
+                     "Alan", 
+                     "Allen")) |> 
+  pivot_wider(
+    names_from = Name,
+    values_from = Count) |> 
+  filter(
+    Year == 2000,
+    State %in% c("PA", 
+                 "CA")) |>
+  mutate(
+    across(Allan:Allen, ~replace_na(., 0)),
+    AllenPercentage = round(Allen/ rowSums(across(Allen:Allan)), 2),
+    AlanPercentage = round(Alan/ rowSums(across(Allen:Allan)), 2),
+    AllanPercentage = round(Allan/ rowSums(across(Allen:Allan)), 2),
+  )
+kable(PercentagesByName, 
+      format = "html",
+      caption = "Percentages Of Allen Spellings Within CA & PA",
+      align = "c")
 ```
 
 **DVS-7: I show creativity in my tables.**
 
--   Example 1
+-   Challenge 9 Question 1
 
 ```{r dvs-7-1}
+CountByState <- StateNamesA |> 
+  rename("Sex at Birth" = "Gender") |> 
+  pivot_wider(
+    names_from = `Sex at Birth`,
+    values_from = Count) |> 
+  filter(Name == "Allison") |> 
+  group_by(State) |> 
+  summarize(across(F:M, 
+                   sum)) |> 
+  mutate(across(F:M, 
+                ~replace_na(.,0)))
 
+kable(CountByState, 
+      col.names = c("State", 
+                    "Female", 
+                    "Male"),
+      format = "html",
+      caption = "Allison's By State",
+      html_font = "Georgia",
+      align = "c"
+      )
 ```
 
--   Example 2
+-   Challenge 9 Question 2
 
 ```{r dvs-7-2}
-
+PercentagesByName <- StateNamesA |> 
+  rename("Sex at Birth" = "Gender") |> 
+  filter(`Sex at Birth` == "M",
+         Name %in% c("Allan", 
+                     "Alan", 
+                     "Allen")) |> 
+  pivot_wider(
+    names_from = Name,
+    values_from = Count) |> 
+  filter(
+    Year == 2000,
+    State %in% c("PA", 
+                 "CA")) |>
+  mutate(
+    across(Allan:Allen, ~replace_na(., 0)),
+    AllenPercentage = round(Allen/ rowSums(across(Allen:Allan)), 2),
+    AlanPercentage = round(Alan/ rowSums(across(Allen:Allan)), 2),
+    AllanPercentage = round(Allan/ rowSums(across(Allen:Allan)), 2),
+  )
+kable(PercentagesByName, 
+      format = "html",
+      caption = "Percentages Of Allen Spellings Within CA & PA",
+      align = "c")
 ```
 
 ## Program Efficiency
@@ -302,65 +623,147 @@ I've done this in the following provided assignments:
 -   using a single function call
 
 ```{r pe-1-one-call}
+StateNamesA <- StateNamesA |> 
+  rename("Sex at Birth" = "Gender") 
 
+StateNamesA |> 
+  pivot_wider(
+    names_from = `Sex at Birth`,
+    values_from = Count) |> 
+  filter(Name == "Allison") |> 
+  group_by(State) |> 
+  summarize(across(F:M, 
+                   sum)) |> 
+  mutate(across(F:M, 
+                ~replace_na(.,0)))
 ```
 
 -   `across()`
+-   Lab 7 Question 3.5
 
 ```{r pe-1-across}
-
+rescale_column <- function(data, variables){
+  stopifnot(is.data.frame(data))
+  data <- data |> 
+  mutate(
+    across(
+      .cols = {{ variables }},
+      .fns = rescale_01
+    )
+  )
+  return(data)
+}
 ```
 
 -   `map()` functions
+-   Lab 8 Question 2.1
 
 ```{r pe-1-map-1}
-
+xmas2 <- xmas |>
+  mutate(
+    day.num = as.character(english::english(Day)), 
+    Full.Phrase = pmap_chr(.l = list(num_word = day.num, 
+                                     item = Gift.Item, 
+                                     verb = Verb, 
+                                     adjective = Adjective, 
+                                     location = Location), 
+                           .f = make_phrase)
+  )
 ```
 
 **PE-2: I can write functions to reduce repetition in my code.**
 
--   Example 1
+-   Lab 7 Question 3
 
 ```{r pe2-1}
-
+rescale_01 <- function(vector1){
+  range_vector <- range(vector1)
+  numerator <- vector1 - range_vector[1]
+  denom <- range_vector[2] - range_vector[1]
+  return(numerator/denom)
+}
 ```
 
--   Example 2
+-   Lab 8 Question 1
 
 ```{r pe2-2}
-
+pluralize_gift <- function(gift){
+  gift <- case_when(
+    str_detect(gift, "oo") ~ str_replace(gift, 
+                                         "oo", 
+                                         "ee"),
+    str_detect(gift, "y$") ~ str_replace(gift, 
+                                         "y", 
+                                         "ies"),
+    TRUE ~ str_c(gift,
+                 "s", 
+                 sep = "")
+  )
+return(gift)
+}
 ```
 
 **PE-3:I can use iteration to reduce repetition in my code.**
 
 -   `across()`
+-   Challenge 3 Question 3
 
 ```{r pe-3-across}
-
+gender_hiphop <- hiphop |> 
+  group_by(sex) |> 
+  distinct(subj, .keep_all = TRUE) |> 
+  summarize(across(intl:unclassifiable, mean)) |> 
+  summarize(across(intl:unclassifiable, diff))
 ```
 
 -   `map()` functions (Provide 2 Examples)
+-   Lab 8 Question 2
 
 ```{r pe-3-map-1}
-
+map_chr(1:12, ~sing_day(xmas2, .x, Full.Phrase)) |>
+  str_c(collapse = "\n") |>
+  cat()
 ```
 
 ```{r pe-3-map-2}
-
+xmas2 <- xmas |>
+  mutate(
+    day.num = as.character(english::english(Day)), 
+    Full.Phrase = pmap_chr(.l = list(num_word = day.num, 
+                                     item = Gift.Item, 
+                                     verb = Verb, 
+                                     adjective = Adjective, 
+                                     location = Location), 
+                           .f = make_phrase)
+  )
 ```
 
 **PE-4: I can use modern tools when carrying out my analysis.**
 
--   Example 1
+-   Lab 3 Question 12
 
 ```{r pe-4-1}
-
+under_twenty_hiphop_max <- hiphop_clean |>
+  filter(age < 20) |>
+  select(word, familiarity) |>
+  group_by(word) |>
+  summarise(mean = mean(familiarity), n = n()) |>
+  slice_max(mean)
 ```
 
--   Example 2
+-   Lab 9 Question 3
 
 ```{r pe-4-2}
-
+StateNamesA |> 
+  pivot_wider(
+    names_from = `Sex at Birth`,
+    values_from = Count) |> 
+  filter(Name == "Allison") |> 
+  group_by(State) |> 
+  summarize(across(F:M, 
+                   sum)) |> 
+  mutate(across(F:M, 
+                ~replace_na(.,0)))
 ```
 
 ## Data Simulation & Modeling
@@ -381,26 +784,41 @@ I've done this in the following provided assignments:
 
 **DSM-2: I can fit a linear regression and extract necessary summary measures.**
 
--   Example 1
+-   Lab 9 Question 4
 
 ```{r dsm-2-1}
-
+Regression_Allison <- StateNamesA |> 
+  filter(Name == "Allison",
+        `Sex at Birth` == "F") %>%
+  lm(Count ~ Year, 
+     data = .)
+summary(Regression_Allison)
 ```
 
--   Example 2
+-   Preview Activity 9.2
 
 ```{r dsm-2-2}
-
+my_model <- penguins %>%
+  lm(bill_length_mm ~ bill_depth_mm, data = .)
 ```
 
 ## Revising My Thinking
 
-<!-- How did you revise your thinking throughout the course? How did you revise your thinking on the code examples you have provided in your portfolio? -->
+I read all of your comments on my labs. For example lab and challenge 3, I did all the changes you requested and resubmitted the new version.
 
 ## Extending My Thinking
+
+-   ![](images/Screenshot%202023-03-19%20at%204.25.24%20PM.png)
+
+-   ![]()![]()![](images/Screenshot%202023-03-19%20at%204.26.14%20PM-01.png)
 
 <!-- How did you extended your thinking throughout the course? How did you extend your thinking on the code examples you have provided in your portfolio? -->
 
 ## Peer Support & Collaboration
 
-<!-- Include an image of feedback you gave that you are proud of (either in a peer review or in Discord) -->
+-   ![](images/Screenshot%202023-03-19%20at%204.16.05%20PM.png)
+
+-   ![](images/Screenshot%202023-03-19%20at%204.17.35%20PM.png)
+
+-   I want to include my old peer reviews, but cannot find them anywhere. I remember being proud of my lab 3 peer reviews as I left detailed comments for every single question that they answered.
+
