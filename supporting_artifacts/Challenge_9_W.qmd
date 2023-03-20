@@ -1,0 +1,98 @@
+---
+title: "Challenge_9"
+author: "Kevin Flores Gonzalez"
+format:
+  html: 
+    code-fold: true
+    code-summary: "Show the code"
+    theme: lux
+    toc: true
+    self-contained: true
+    code-tools: true
+editor: visual
+execute:
+  echo: true
+  error: true
+  messages: false
+---
+
+# Challenge 9: Creating Nice Tables
+
+```{r}
+#| message: false
+#| warning: false
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+install.packages("DT")
+library(here)
+StateNamesA <- read_csv(here::here("Week 9", 
+                                    "Lab & Challenge", 
+                                    "StateNames_A.csv"))
+```
+
+## Interactive Data Table
+
+```{r}
+datatable(
+          head(StateNamesA), 
+          class = "cell-border stripe", 
+          colnames = c('Sex At Birth' = 'Gender', 
+                       `# Of Occurrences` = "Count"),
+          caption = "Preview Table Of StateNamesA CSV Dataset"
+          )
+```
+
+## Part 1 - Formatting Basic Tables
+
+```{r}
+CountByState <- StateNamesA |> 
+  rename("Sex at Birth" = "Gender") |> 
+  pivot_wider(
+    names_from = `Sex at Birth`,
+    values_from = Count) |> 
+  filter(Name == "Allison") |> 
+  group_by(State) |> 
+  summarize(across(F:M, 
+                   sum)) |> 
+  mutate(across(F:M, 
+                ~replace_na(.,0)))
+
+kable(CountByState, 
+      col.names = c("State", 
+                    "Female", 
+                    "Male"),
+      format = "html",
+      caption = "Allison's By State",
+      html_font = "Georgia",
+      align = "c"
+      )
+```
+
+## Part 2 - Formatting Nicer Tables
+
+```{r}
+PercentagesByName <- StateNamesA |> 
+  rename("Sex at Birth" = "Gender") |> 
+  filter(`Sex at Birth` == "M",
+         Name %in% c("Allan", 
+                     "Alan", 
+                     "Allen")) |> 
+  pivot_wider(
+    names_from = Name,
+    values_from = Count) |> 
+  filter(
+    Year == 2000,
+    State %in% c("PA", 
+                 "CA")) |>
+  mutate(
+    across(Allan:Allen, ~replace_na(., 0)),
+    AllenPercentage = round(Allen/ rowSums(across(Allen:Allan)), 2),
+    AlanPercentage = round(Alan/ rowSums(across(Allen:Allan)), 2),
+    AllanPercentage = round(Allan/ rowSums(across(Allen:Allan)), 2),
+  )
+kable(PercentagesByName, 
+      format = "html",
+      caption = "Percentages Of Allen Spellings Within CA & PA",
+      align = "c")
+```

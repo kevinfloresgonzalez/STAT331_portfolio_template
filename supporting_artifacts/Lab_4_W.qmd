@@ -1,0 +1,184 @@
+---
+title: "Lab_4_W"
+author: "Kevin Flores Gonzalez"
+format:
+  html: 
+    code-fold: true
+    code-summary: "Show the code"
+    theme: lux
+    toc: true
+    self-contained: true
+    code-tools: true
+editor: visual
+execute:
+  echo: true
+  error: true
+  messages: false
+---
+
+## Lab 4: Avocados
+
+For this analysis we are going to be looking at avocado prices.
+
+The avocado data contains various statistics on the sales, volume, and production of avocados in various regions.
+
+## Loading in the Data & Libraries
+
+```{r}
+#| message: false
+library(tidyverse)
+library(dplyr)
+avocado <- read_csv(here::here
+                   ("Week 4", "Lab 4", "avocado.csv"))
+```
+
+## Cleaning the Data
+
+In the following code, the avocado dataset was cleaned
+
+```{r}
+library(dplyr)
+avocado_major_regions <- data.frame(
+  region = c("Midsouth", 
+             "Northeast", 
+             "Plains", 
+             "Southeast", 
+             "West", 
+             "SouthCentral", 
+             "GreatLakes", 
+             "WestTexNewMexico" )
+)
+
+avocado_cali_regions <- data.frame(
+  region = c("SanFrancisco", 
+             "LosAngeles", 
+             "SanDiego",
+             "Sacramento")
+  )
+
+avocado_states <- data.frame(
+  region = c("California", 
+             "NewYork", 
+             "SouthCarolina")
+  )
+
+avocado <- avocado |> 
+  rename("small" = `4046`, 
+         "large" = `4225`, 
+         "extralarge" = `4770`) |> 
+  separate(col=Date, into=c('Year', 
+                            'Month', 
+                            "Day"), sep='-') 
+```
+
+## Region that sold the most Hass avocados in 2017
+
+Based on the analysis below we can conclude that in 2017, the region that sold the most Hass avocados was the "West" region.
+
+```{r}
+avocado |>
+  semi_join(y = avocado_major_regions, 
+            by = "region") |> 
+  filter(type == "organic", 
+         Year == 2017) |> 
+  group_by(region) |> 
+  summarise(sum_small_total_volume = sum(small))
+```
+
+## Highest Volume of Avocado Sales per Month
+
+Based on the analysis below we can conclude that the region with the highest volume of avocado sales per month is February.
+
+```{r}
+avocado |> 
+  select(Month, `Total Volume`) |> 
+  group_by(Month) |> 
+  summarise(`Total Per Month` = sum(`Total Volume`)) |> 
+  slice_max(`Total Per Month`)
+```
+
+## Metro Area Regions that sold the Most Total Avocados
+
+Based on the analysis below we can conclude that the top five regions that sold the most avocados are:
+
+1\) Phoenix/Tucson
+
+2\) Houston
+
+3\) Denver
+
+4\) Dallas Ft Worth
+
+5\) BailtimoreWashington
+
+```{r}
+
+Metro_Avocado_Only <- avocado |> 
+  anti_join(avocado_major_regions, 
+            by = "region") |> 
+  anti_join(avocado_cali_regions, 
+            by = "region") |> 
+  anti_join(avocado_states, 
+            by = "region") |> 
+  filter(region != "TotalUS")
+
+Metro_Top5 <- Metro_Avocado_Only |> 
+  group_by(region) |> 
+  summarize("Sum Total Volume" = sum(`Total Volume`)) |> 
+  arrange(desc(`Sum Total Volume`)) |> 
+  slice_head(n = 5)
+
+Metro_Avocado_Only |> 
+  semi_join(Metro_Top5, 
+            by = "region") |> 
+  ggplot(mapping = aes(x = `Total Volume`, 
+                       y = region))+
+  geom_boxplot()+
+  labs(x = "Total Volume Of Avocado Sales", 
+       y = "Top Five Metro Areas")
+```
+
+## Reshaping Data: California Regions Only
+
+```{r}
+#| message: FALSE
+#| warning: FALSE
+organic_vs_conventional_avocado <- avocado |>
+  semi_join(avocado_cali_regions, 
+            by = "region") |> 
+  group_by(region, type) |> 
+  summarise(avg_avocado_price = mean(AveragePrice)) |> 
+  pivot_wider(names_from = "type", 
+              values_from = "avg_avocado_price") |> 
+  mutate(`Difference In Avg Price For Conventional and Organic` = organic - conventional) 
+
+ggplot(organic_vs_conventional_avocado, 
+       aes(x = region,
+    y = `Difference In Avg Price For Conventional and Organic`))+
+geom_point()
+
+
+```
+
+San Francisco is the region where the price of organic versus conventional avocados are most different.
+
+### Plot of Hass Avocado Sales That are Small, Large, or Extra Large; Conventional vs. Organic.
+
+```{r}
+proportion_avocado_data <- avocado |>
+  semi_join(avocado_cali_regions, 
+            by = "region") |> 
+  pivot_longer("extralarge":"small",
+               names_to = "Avocado Size",
+               values_to = "Number Of Avocados") |> 
+  mutate(Proportion = `Number Of Avocados` / mean(`Total Volume`))
+proportion_avocado_data |> 
+  ggplot(mapping = aes(x = region, 
+                       y = Proportion, 
+                       fill = `Avocado Size`))+
+  geom_bar(position = position_fill(reverse = TRUE), stat = "identity") +
+  labs(x = "Regions of CA", 
+       y = "Proportion of Mean Avocados Sold") + 
+  scale_x_discrete(guide = guide_axis(n.dodge=2))+
+  facet_wrap(~type)
+```

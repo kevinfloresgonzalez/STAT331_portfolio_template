@@ -1,0 +1,113 @@
+---
+title: "Challenge_7_W"
+author: "Kevin Flores Gonzalez"
+format:
+  html: 
+    code-fold: true
+    code-summary: "Show the code"
+    theme: lux
+    toc: true
+    self-contained: true
+    code-tools: true
+editor: visual
+execute:
+  echo: true
+  error: true
+  messages: false
+---
+
+# Challenge 7: Incorporating Multiple Inputs 
+
+A frequently used measurement for fish health is a \"condition index.\" [(Wikepedia article)](https://en.wikipedia.org/wiki/Condition_index_in_fish) The following simple equation can be used to calculate the approximate condition index of a fish:
+
+$$
+condition \ index = \frac{weight}{length^3} \times  100
+$$
+
+### Loading in the Dataset and Libraries 
+
+```{r}
+library(tidyverse)
+library(dplyr)
+bf_fish <- read_csv(here::here
+                    ("Week 7", "Lab 7", "Blackfootfish.csv"))
+```
+
+## 4.1: Part 1
+
+There are specific units required for the calculation of a condition index. Length must be in millimeters, and weight must be in grams. Inspect the `length` and `weight` variables to decide if you believe these are the correct units associated with these measurements---this will likely require Googling what \"typical\" measurements of trout are.
+
+### **Replacing Impossible Measurements with `NA`s**
+
+Based on your research, write function(s) to handle the unlikely / impossible measurements included in the dataset. Your function(s) should accept three inputs (1) a vector of measurements, (2) the minimum value you believe is \"reasonable,\" and (3) the maximum value you believe is \"reasonable.\" If a value falls outside these bounds, you should replace it with an `NA`.
+
+Use your function to modify the `length` and `weight` columns of the `BlackfootFish` dataset, removing values you believe are \"unreasonable.\"
+
+```{r}
+Replacing_Impossible_Measurements <- function(vec,
+                                              min_val,
+                                              max_val){
+  stopifnot(is.numeric(vec))
+  case_when(
+    {{vec}} > max_val ~ NA_real_,
+    {{vec}} < min_val ~ NA_real_,
+    TRUE ~ {{vec}}
+  )
+}
+```
+
+```{r}
+bf_fish <- bf_fish |> 
+  mutate(
+        length = Replacing_Impossible_Measurements(length, 
+                                                   120, 
+                                                   300),
+        weight =  Replacing_Impossible_Measurements(weight, 
+                                                    70, 
+                                                    200)
+  )
+```
+
+## 4.2: Part 2
+
+Write a function which calculates the condition index of a fish, given inputs of weight and length.
+
+```{r}
+Condition_Index = function(data, 
+                           len_val, 
+                           wt_val){
+  data <- data |> 
+    na.omit() |> 
+    mutate(`Condition Index` = ({{wt_val}} / ({{len_val}}^3)) * 100)
+  return(data)
+}
+```
+
+## 4.3: Part 3
+
+Make a thoughtful visualization of how fish conditions have varied over the duration of this study.
+
+```{r}
+bf_fish_2 <- bf_fish |> 
+  Condition_Index(len_val = length, 
+                  wt_val = weight) |> 
+  mutate(Named_Trips = ifelse(trip == 1, 
+                         "Trip 1", 
+                         "Trip 2")) |> 
+  group_by(Named_Trips, 
+           year, 
+           species, 
+           section) |> 
+  summarize(`Condition Index` = mean(`Condition Index`)) 
+```
+
+```{r}
+ggplot(data = bf_fish_2, mapping = aes(x = year, 
+                                       y = `Condition Index`)) +
+  geom_line() +
+  facet_grid(cols = vars(species), 
+             rows = vars(Named_Trips)) + 
+  labs(x = "Year",
+       title = "Mean Condition Index For Each Year By Trip And Species",
+       y = "")
+```

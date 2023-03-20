@@ -1,0 +1,137 @@
+---
+title: "Lab_5"
+author: "Kevin Flores Gonzalez"
+format:
+  html: 
+    code-fold: true
+    code-summary: "Show the code"
+    theme: lux
+    toc: true
+    self-contained: true
+    code-tools: true
+editor: visual
+execute:
+  echo: true
+  error: true
+  messages: false
+---
+
+# Lab 5
+
+## Loading in the Data & Libraries
+
+```{r}
+#| message: false
+library(tidyverse)
+library(forcats)
+library(stringr)
+surveys <- read_csv(here::here
+                   ("Week 2", "Lab 2", "surveys.csv"))
+```
+
+## Unedited Lab 2 Graph
+
+```{r}
+ggplot(data = surveys, mapping = aes( x = weight, 
+                                      y = species)) + 
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(color = "tomato", alpha = 1/50) +
+  labs(title = "Distribution Of Weight (In Grams) By Species", 
+       x = "Weight in Grams",
+       y = "Species")
+```
+
+## Edited Lab 2 Graph (Descending Order)
+
+```{r}
+ggplot(data = surveys, mapping = aes( x = weight, 
+                                      y =  fct_reorder(species, 
+                                                       weight, 
+                                                       .desc = TRUE))) + 
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(color = "tomato", alpha = 1/50) +
+  labs(title = "Species", 
+       x = "Weight in Grams",
+       y = " ") 
+```
+
+## Time Series Plots
+
+## 1: Time Series Plot
+
+```{r}
+ggplot(data = surveys, mapping = aes(x = date, 
+                                     y = weight,
+                                     color = genus)) +
+  geom_line()
+```
+
+## 2: Time Series Plot
+
+```{r}
+  surveys |> 
+  separate(col=date, into=c('Year', 'Month', "Day"), sep='-') |> 
+  group_by(Year, genus) |> 
+  summarize(avg_weight = mean(weight)) |> 
+  ggplot(mapping = aes(x = Year, y = avg_weight, 
+                       color = fct_reorder2(genus, Year, avg_weight),
+                       group = genus)) +
+  geom_line() +
+  labs(title = "Average Weight in Grams", 
+       x = "Year",
+       y = " ",
+       color = "Genus")
+```
+
+## Captures over the Week
+
+## 1: Time Series Plot
+
+```{r}
+surveys_wo_na <- surveys |> 
+  filter(day_of_week != "NA")
+
+ggplot(data = surveys_wo_na, mapping = aes(day_of_week))+
+  geom_bar()+
+  labs(y = "Number Of Rodents Caught",
+       x = "Day of Week")
+```
+
+## 2: Time Series Plot
+
+```{r}
+ggplot(data = surveys_wo_na, mapping = aes(
+  fct_relevel(day_of_week, c("Mon",
+                             "Tue",
+                             "Wed",
+                             "Thu",
+                             "Fri",
+                             "Sat",
+                             "Sun")))) +
+  geom_bar() +
+  labs(title = "Number Of Rodents Caught",
+       x = "Day Of Week",
+       y = "")
+```
+
+## 3: Time Series plot
+
+```{r}
+time_series_surveys_by_week_count <- surveys |> 
+  mutate(day_of_week = 
+           fct_collapse(day_of_week, 
+             Weekend = c("Sat", 
+                         "Sun"), 
+             Weekday = c("Mon", 
+                         "Tue", 
+                         "Wed", 
+                         "Thu", 
+                         "Fri"))) |>
+  filter(day_of_week != "NA")
+ggplot(data = time_series_surveys_by_week_count, 
+       mapping = aes(fct_relevel(day_of_week, c("Weekday","Weekend"))))+
+  geom_bar()+
+  labs(title = "Number Of Rodents Caught",
+       x = "Day Of Week",
+       y = "")
+```

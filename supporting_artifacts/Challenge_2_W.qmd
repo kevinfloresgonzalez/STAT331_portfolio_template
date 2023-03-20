@@ -1,0 +1,106 @@
+---
+title: "Challenge 2"
+author: "Kevin Flores Gonzalez"
+format:
+  html: 
+    code-fold: true
+    code-summary: "Show the code"
+    theme: lux
+editor: visual
+execute:
+  echo: true
+  error: true
+toc: true
+---
+
+## Challenge 2: Spicing things up with ggplot
+
+# Loading in Packages & Data
+
+In the code chunk below I am loading in the packages neccessary for analysis.
+
+```{r setup}
+install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+install.packages("here", repos = "http://cran.us.r-project.org")
+install.packages("ggridges", repos = "http://cran.us.r-project.org")
+library(tidyverse)
+library(here)
+library(ggridges)
+```
+
+In the code chunk below I am loading in the data using the here package. For this lab we will use the **`readr`** package (from the `tidyverse`) to read in the data. We'll read in our data using the `read_csv()` function instead of the `read.csv()` function. This function **does not** coerce character variables to factors, a behavior that many in the R community feel is unappealing.
+
+```{r}
+#| message: FALSE
+# Code for question 1! 
+surveys <- read_csv(here::here
+                    ("Week 2", "Lab 2", "surveys.csv"))
+```
+
+# Data Context
+
+The Portal Project is a long-term ecological study being conducted near Portal, AZ. Since 1977, the site has been used to study the interactions among rodents, ants and plants and their respective responses to climate. To study the interactions among organisms, we experimentally manipulate access to 24 study plots. This study has produced over 100 scientific papers and is one of the longest running ecological studies in the U.S.
+
+We will be investigating the animal species diversity and weights found within plots at the Portal study site. The dataset is stored as a comma separated value (CSV) file. Each row holds information for a single animal, and the columns represent:
+
+| Column          | Description                        |
+|-----------------|------------------------------------|
+| record_id       | Unique id for the observation      |
+| month           | month of observation               |
+| day             | day of observation                 |
+| year            | year of observation                |
+| plot_id         | ID of a particular plot            |
+| species_id      | 2-letter code                      |
+| sex             | sex of animal ("M", "F")           |
+| hindfoot_length | length of the hindfoot in mm       |
+| weight          | weight of the animal in grams      |
+| genus           | genus of animal                    |
+| species         | species of animal                  |
+| taxon           | e.g. Rodent, Reptile, Bird, Rabbit |
+| plot_type       | type of plot                       |
+
+### Challenge 1- Medium - Ridge Plots
+
+```{r}
+ggplot(data = surveys, aes(x = weight, 
+                           y = species, 
+                           fill = stat(x))) +
+  geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
+  scale_fill_viridis_c(name = "Weight", option = "C") +
+  labs(title = 'Distribution of Weight (In Grams) By Species')
+
+```
+
+### Challenge 2 & 3 - Spicy and Hot - Exploring Color Themes
+
+Some data scientists have advocated that we should try to eliminate legends from our plots to make them more clear. Instead, we should use annotation.
+
+We have labeled the "Neotoma" and "Perognathus" genera, so the reader can tell that these three boxplots are associated with this respective genus.
+
+```{r}
+cdPalette_grey <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", 
+                    "#0072B2", "#D55E00", "#CC79A7")
+ggplot(data = surveys, mapping = aes( x = weight, 
+                                      y = species,
+                                      color = genus)) + 
+  geom_boxplot() +
+  labs(title = "Distribution Of Weight (In Grams) By Species", 
+       x = "Weight (Grams)",
+       y = "Species") +
+  scale_color_manual(values = cdPalette_grey) +
+  annotate("text", y = 1, x = 10, label = "Neotoma") +
+  annotate("text", y = 2, x = 100, label = "Chaetodipus") +
+  annotate("text", y = 3, x = 100, label = "Peromyscus") +
+  annotate("text", y = 4, x = 90, label = "Perognathus") +
+  annotate("text", y = 5, x = 90, label = "Reithrodontomys") +
+  annotate("text", y = 6, x = 170, label = "Sigmodon") +
+  annotate("text", y = 7, x = 90, label = "Onychomys") +
+  annotate("text", y = 8, x = 90, label = "Peromyscus") +
+  annotate("text", y = 9, x = 80, label = "Reithrodontomys") +
+  annotate("text", y = 10, x = 120, label = "Dipodomys") +
+  annotate("text", y = 11, x = 125, label = "Dipodomys") +
+  annotate("text", y = 12, x = 120, label = "Chaetodipus") +
+  annotate("text", y = 13, x = 250, label = "Dipodomys") +
+  annotate("text", y = 14, x = 85, label = "Onychomys") +
+  theme(legend.position="none")
+```

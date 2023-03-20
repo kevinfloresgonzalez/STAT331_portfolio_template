@@ -1,0 +1,73 @@
+---
+title: "Challenge_4_W"
+author: "Kevin Flores Gonzalez"
+format:
+  html: 
+    code-fold: true
+    code-summary: "Show the code"
+    theme: lux
+    toc: true
+    self-contained: true
+    code-tools: true
+editor: visual
+execute:
+  echo: true
+  error: true
+  messages: false
+---
+
+
+## Housing Dataset
+
+The housing dataset is a sample of 40 randomly selected housing prices, 10 from each area, that were selected on Zillow. As a warning, it is likely that this very low amount of sample size can lead to skewed results of analysis.
+
+### Loading In Datasets
+
+```{r}
+#| message: false
+library(tidyverse)
+
+avocado <- read_csv(here::here
+                   ("Week 4", "Lab 4", "avocado.csv"))
+housing <- read_csv(here::here
+                   ("Week 4", "Challenge 4", "test.csv"))
+```
+
+### Altering / Joining Dataset
+
+```{r}
+#Cleaning the housing data
+
+housing <- housing |>
+    mutate(City = recode(City, "San Francisco" = "SanFrancisco", "Los Angeles" = "LosAngeles", "San Diego" = "SanDiego" )) |>
+    rename("region" = "City") |>
+    na.omit(housing$region) |>
+    rename("price" = `Last Sold Price`) |>
+    group_by(region)
+
+avocadohousing <- avocado |>
+  inner_join(housing, by = "region") |> 
+  group_by(region, type) |>
+  mutate(avg_price = mean(housing$price)) |>
+  mutate(avg_avo_price = mean(AveragePrice)) |>
+  rename(small = `4046`, large = `4225`, extralarge = `4770`)
+  
+```
+
+## Ggplot
+
+```{r}
+ggplot(data = avocadohousing, 
+       mapping = aes(y = avg_price, x = avg_avo_price, color = region))+
+  geom_point()+
+  labs(title = "Average Avocado Price In Comparison To Avg Housing Price",
+       color = "Region",
+       x = "Average Avocado Price",
+       y = "Average Housing Price"
+       )+
+  facet_wrap(~region)
+```
+
+## Conclusion:
+
+Looking at the data here, there is no distinguishable pattern in the dataset between average avocado price and average housing price, including when you account for average conventional and average organic price. Initially, my hunch was that housing prices would increase as the average avocado price would increase, but this may be due to a sampling error in the Housing dataset.

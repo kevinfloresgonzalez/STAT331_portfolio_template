@@ -1,0 +1,74 @@
+---
+title: "Challenge_3_W"
+author: "Kevin Flores Gonzalez"
+format:
+  html: 
+    code-fold: true
+    code-summary: "Show the code"
+    theme: lux
+    toc: true
+    self-contained: true
+    code-tools: true
+editor: visual
+execute:
+  echo: true
+  error: true
+  messages: false
+---
+
+## Loading in Data & Declaring Libraries
+
+```{r}
+
+#| message: FALSE
+library("tidyverse")
+hiphop <- read_csv(here::here
+                    ("Week 3", "Lab 3", "hiphop.csv"))
+```
+
+## Male versus Female
+
+```{r}
+gender_hiphop <- hiphop |> 
+  group_by(sex) |> 
+  distinct(subj, .keep_all = TRUE) |> 
+  summarize(across(intl:unclassifiable, mean)) |> 
+  summarize(across(intl:unclassifiable, diff))
+gender_hiphop
+```
+
+Values that are negative indicate that Males like it more, while values that are positive indicate that Females like it more.
+
+The genre that differentiates Male and Female groups the most is rock. Rock has the highest value in the tibble above.
+
+## White versus Non-White
+
+```{r}
+ethnicity_hiphop <- hiphop |> 
+  mutate(ethnic_categorical = ifelse(ethnic == "white", 
+                         "white", 
+                         "non-white")) |> 
+  group_by(ethnic_categorical) |> 
+  distinct(subj, .keep_all = TRUE) |>
+  summarize(across(intl:unclassifiable, mean)) |> 
+  summarize(across(intl:unclassifiable, diff))
+ethnicity_hiphop
+```
+
+Values that are negative indicate Non-White preference while values that positive indicate White preference.
+
+Intl: Higher for Non-Whtie
+
+Rock:Higher for White
+
+Alternative: Higher for White
+
+Hip Hop: Higher for White
+
+## Concerns over Data Collection Method
+
+-   All participants of this study were collected form a single university. This limits the usefulness of the data to only that university since it is not Representative of other universities.
+
+-   All students were students form Minnesota, leading to more issues as students in Minnesota likely differ from students in other states.
+
+-   The study excludes Black individuals while using black stereotypes to gauge different peoples understanding of Black culture. The study as a whole is unethical and perpetuates stereotypes.
